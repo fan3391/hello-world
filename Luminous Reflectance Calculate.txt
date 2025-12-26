@@ -1,0 +1,35 @@
+根据excel中波长和对应人眼敏感度的数值，以及光反射率公式：
+https://www.doubao.com/chat/25490400171163394#:~:text=%E6%8C%89%E5%85%AC%E5%BC%8F%E8%AE%A1%E7%AE%97,100%25
+编写如下python代码，代码实现如下功能：
+1.打开对话框，获取文件（另外一个excel文件，其中第1列为波长，第2列为反射率数据）；
+2.读取对应的波长和相应的反射率数据；
+3.在《Luminous Efficiency Function》中，查找对应波段人眼的敏感度；
+4.结合光反射率公式，计算反射率，并输出这一数值；
+
+import pandas as pd
+
+# 读取 Luminous Efficiency Function.xlsx 文件
+df_sensitivity = pd.read_excel('/mnt/Luminous Efficiency Function.xlsx')
+
+# 读取包含波长和反射率数据的文件（请替换为实际文件路径）
+file_path = '/mnt/your_reflectance_file.xlsx'
+df_reflectance = pd.read_excel(file_path)
+
+# 提取波长和反射率数据
+wavelengths = df_reflectance.iloc[:, 0]
+reflectances = df_reflectance.iloc[:, 1]
+
+# 在 Luminous Efficiency Function 数据中查找对应波长的人眼敏感度
+sensitivities = []
+for wl in wavelengths:
+    sensitivity = df_sensitivity[df_sensitivity['波长'] == wl]['人眼敏感度'].values[0] if wl in df_sensitivity['波长'].values else 0
+    sensitivities.append(sensitivity)
+
+# 假设标准照明体函数 S(λ) 在整个可见光范围内为 1（简化计算）
+numerator = sum(reflectances * sensitivities)
+denominator = sum(sensitivities)
+
+# 计算光反射率
+luminous_reflectance = (numerator / denominator) * 100 if denominator != 0 else 0
+
+print(f"光反射率为: {luminous_reflectance}%")
